@@ -1,59 +1,48 @@
 import matplotlib.pyplot as plt
 import pandas
 
-if __name__ == '__main__':
-    WRITERS = 'logs/writers.log'
-    READERS = 'logs/readers.log'
-    iterations = [500, 1000, 1500, 2000, 3000, 4000, 5000, 6000]
+if __name__ == "__main__":
+    iterations = [1, 100, 250, 500, 1000, 1500, 2000, 2500, 3000]#, 650, 750, 1000, 1500, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000]
+    
+    writers = [
+        "pickle_safe_ram",
+        "pickle_safe_ram_hp",
+        "dill_safe_ram",
+        "dill_safe_ram_hp",
+    ]
 
-    # WRITERS
+    readers = [
+        "unpickle_safe_ram",
+        "unpickle_safe_ram_hp",
+        "undill_safe_ram",
+        "undill_safe_ram_hp",
+    ]
 
-    writers = pandas.read_csv(WRITERS)
+    # Load files:
+    writers_files = {name: pandas.read_csv(
+        f"logs/{name}.csv") for name in writers}
+    readers_files = {name: pandas.read_csv(
+        f"logs/{name}.csv") for name in readers}
+
+    # WRITERS PLOT
     default_x_ticks = range(len(iterations))
-    # plt.plot(default_x_ticks, writers['pickle_unsafe_disk'].to_numpy()  , label="pickle_unsafe_disk")
-    # plt.plot(default_x_ticks, writers['pickle_unsafe_ram'].to_numpy()   , label="pickle_unsafe_ram")
-    # plt.plot(default_x_ticks, writers['pickle_unsafe_ram_hp'].to_numpy(), label="pickle_unsafe_ram_hp")
-    # plt.plot(default_x_ticks, writers['dill_unsafe_disk'].to_numpy()    , label="dill_unsafe_disk")
-    # plt.plot(default_x_ticks, writers['dill_unsafe_ram'].to_numpy()     , label="dill_unsafe_ram")
-    plt.plot(default_x_ticks, writers['pickle_safe_disk'].to_numpy()    , label="pickle_safe_disk")
-    plt.plot(default_x_ticks, writers['pickle_safe_ram'].to_numpy()     , label="pickle_safe_ram")
-    plt.plot(default_x_ticks, writers['pickle_safe_ram_hp'].to_numpy()  , label="pickle_safe_ram_hp")
-    # plt.plot(default_x_ticks, writers['send_queue'].to_numpy()          , label="send_queue")
 
-    plt.xticks(default_x_ticks, iterations)
+    # SCOMPATTATO
+    for key, key1 in zip(readers_files.keys(), writers_files.keys()):
+        if key1 not in ['send_queue', 'dill_unsafe_disk', 'pickle_safe_disk', 'pickle_unsafe_disk', 'dill_unsafe_ram']:
+            plt.scatter(iterations, readers_files[key].mean(1), label=key1)
+        # plt.plot(iterations, readers_files[key].mean(1)*100  , label=key)
+        plt.xticks(iterations)
 
+    plt.style.use('default')
+
+    plt.xticks(rotation=-45)
     plt.xlabel("Batch size")
-    plt.ylabel("Batch sending execution time [s]")
-    plt.title("writers")
+    plt.ylabel("Communication time - send data [s]")
+    # plt.title("Receive (12) and Send (1 - as it's concurrent on 12 processes) data - no some")
+    plt.title("Receive data")
 
     plt.legend()
     plt.gcf().set_size_inches(10, 7)
-
-    plt.savefig("plots/writers.png", dpi=400)
-    plt.close()
-
-
-    # READERS
-    readers = pandas.read_csv(READERS)
-    default_x_ticks = range(len(iterations))
-    # plt.plot(default_x_ticks, readers['unpickle_unsafe_disk'].to_numpy()  , label="unpickle_unsafe_disk")
-    # plt.plot(default_x_ticks, readers['unpickle_unsafe_ram'].to_numpy()   , label="unpickle_unsafe_ram")
-    # plt.plot(default_x_ticks, readers['unpickle_unsafe_ram_hp'].to_numpy(), label="unpickle_unsafe_ram_hp")
-    # plt.plot(default_x_ticks, readers['undill_unsafe_disk'].to_numpy()    , label="undill_unsafe_disk")
-    # plt.plot(default_x_ticks, readers['undill_unsafe_ram'].to_numpy()     , label="undill_unsafe_ram")
-    plt.plot(default_x_ticks, readers['unpickle_safe_disk'].to_numpy()    , label="unpickle_safe_disk")
-    plt.plot(default_x_ticks, readers['unpickle_safe_ram'].to_numpy()     , label="unpickle_safe_ram")
-    plt.plot(default_x_ticks, readers['unpickle_safe_ram_hp'].to_numpy()  , label="unpickle_safe_ram_hp")
-    # plt.plot(default_x_ticks, readers['get_queue'].to_numpy()          , label="get_queue")
-
-    plt.xticks(default_x_ticks, iterations)
-
-    plt.xlabel("Batch size")
-    plt.ylabel("Batch receiving execution time [s]")
-    plt.title("readers")
-
-    plt.legend()
-    plt.gcf().set_size_inches(10, 7)
-
-    plt.savefig("plots/readers.png", dpi=400)
+    plt.savefig("plot/tmp121.png", dpi=400)
     plt.close()
